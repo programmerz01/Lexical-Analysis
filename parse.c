@@ -51,8 +51,8 @@ void parse(const char* str)
         switch (state) {
             //初始状态，寻找需要识别的第一个字符，进入相应的识别过程
         case 0:
-            ch = get_char(str, &buf);
-            ch = get_nbc(str, &buf, ch);
+            ch = get_char(&buf);
+            ch = get_nbc(&buf, ch);
 
             if (is_digit(ch)) {
                 state = 2;
@@ -87,7 +87,7 @@ void parse(const char* str)
             //识别标识符
         case 1:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             //字符串识别结束，进行错误识别或输出正确记号
             if (!(is_letter(ch) || is_digit(ch))) {
@@ -107,7 +107,7 @@ void parse(const char* str)
             // 2-7 识别数字
         case 2:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             if (is_digit(ch)) {
                 state = 2;
@@ -131,7 +131,7 @@ void parse(const char* str)
 
         case 3:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             if (is_digit(ch)) {
                 state = 4;
@@ -146,7 +146,7 @@ void parse(const char* str)
             break;
         case 4:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             if (is_digit(ch)) {
                 state = 4;
@@ -165,7 +165,7 @@ void parse(const char* str)
             break;
         case 5:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             if (is_digit(ch)) {
                 state = 7;
@@ -183,7 +183,7 @@ void parse(const char* str)
             break;
         case 6:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             if (is_digit(ch)) {
                 state = 7;
@@ -198,7 +198,7 @@ void parse(const char* str)
             break;
         case 7:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             if (is_digit(ch)) {
                 state = 7;
@@ -214,7 +214,7 @@ void parse(const char* str)
             // 8-11处理 /：注释或运算符
         case 8:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
             //进入注释
             if (ch == '*') {
                 state = 9;
@@ -237,9 +237,9 @@ void parse(const char* str)
             buf.p = buf.forward;
             break;
         case 9:
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
             while (ch != '*' && ch != 0) {
-                ch = get_char(str, &buf);
+                ch = get_char(&buf);
             }
             if (ch == 0) {
                 cat(&token, ch); 
@@ -250,7 +250,7 @@ void parse(const char* str)
             }
             break;
         case 10:
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
             if (ch == '/') {
                 state = 0;
                 clear_buf(&token);
@@ -262,9 +262,9 @@ void parse(const char* str)
             break;
         case 11:
             //略过注释
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
             while (ch != '\n') {
-                ch = get_char(str, &buf);
+                ch = get_char(&buf);
             }
 
             state = 0;
@@ -282,7 +282,7 @@ void parse(const char* str)
             }
 
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             //处理两位运算符
             if (ch == '=' ||
@@ -299,7 +299,7 @@ void parse(const char* str)
             else if (token.buf[token.p - 1] == '>' && ch == '>' ||
                 token.buf[token.p - 1] == '<' && ch == '<') {
                 cat(&token, ch);
-                ch = get_char(str, &buf);
+                ch = get_char(&buf);
                 //匹配成功
                 if (ch == '=') {
                     cat(&token, ch);
@@ -326,7 +326,7 @@ void parse(const char* str)
             // 13-16 处理char型
         case 13:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             //正常字符
             if (is_digit(ch) || is_letter(ch)
@@ -345,7 +345,7 @@ void parse(const char* str)
             break;
         case 14:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             if (ch == '\'') {
                 cat(&token, ch);
@@ -361,7 +361,7 @@ void parse(const char* str)
         case 15:
             //转义字符
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             // 错误情况输出后按正常情况处理
             if (is_excape(ch));
@@ -373,7 +373,7 @@ void parse(const char* str)
             // 16-17 string
         case 16:
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
             //正常字符
             if (is_digit(ch) || is_letter(ch)
                 || is_seperator(ch) || is_operator(ch)
@@ -401,7 +401,7 @@ void parse(const char* str)
         case 17:
             //转义字符
             cat(&token, ch);
-            ch = get_char(str, &buf);
+            ch = get_char(&buf);
 
             // 错误情况输出后按正常情况处理
             if (is_excape(ch));

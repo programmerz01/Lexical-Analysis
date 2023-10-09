@@ -3,29 +3,57 @@
 #include <string.h>
 #include <stdio.h>
 
-static int line = 0;
+static int line = 1;
 static int nchars = 0;
 static int pstr = 0;	//待分析程序指针
+static FILE* fp = 0;
 
-char* b_init(buffer *buf, const char* str)
+static Boolean fill_buf(buffer* buf, Boolean fill_left);
+
+static Boolean fill_buf(buffer* buf, Boolean fill_left)
 {
-	memset(buf->buf, 0, buf->size);
+	int half_size;
+	char* pbuf;
 
-	buf->buf[buf->size / 2 - 1] = EOF;
-	buf->buf[buf->size - 1] = EOF;
+	if (fill_left) {
+		half_size = buf->size / 2;
+		pbuf = buf->buf;
+	}
+	else {
+		half_size = buf->size - buf->size / 2 ;
+		pbuf = buf->buf + buf->size / 2;
+	}
+
+	fgets(pbuf, half_size, fp);
+
+	// 读入时遇到换行符导致未读满半缓冲区
+	while (!feof(fp) && strlen(pbuf) + 1 != half_size) {
+		int a = strlen(pbuf);
+		// 重复读取，直至缓冲区满
+		fgets(pbuf + strlen(pbuf), half_size - strlen(pbuf), fp);
+	}
+
+	pbuf[half_size - 1] = EOF;
+
+}
+
+void b_init(buffer* buf,const char* file_name)
+{
+	if (!(fp = fopen(file_name, "r"))) {
+		printf("Can't find or open file: %s",file_name);
+		exit(1);
+	}
+	
 	//第一次初始化只需初始一半，右半会在get_char中初始化
-	memcpy(buf->buf, str + pstr, buf->size / 2 - 1);
-	pstr += buf->size / 2 - 1;
-
+	memset(buf->buf, 0, buf->size);
+	fill_buf(buf, true);
 
 	buf->forward = 0;	// forward指针
 	buf->p = 0;			// front指针
-	
 }
 
-
 // 移动forward指针，获取buf中下一个字符，必要时填充缓冲区
-char get_char(const char* prog_str, buffer *buf)
+char get_char(buffer* buf)
 {
 	char ch = buf->buf[buf->forward++];
 
@@ -33,44 +61,36 @@ char get_char(const char* prog_str, buffer *buf)
 	if (ch == EOF) {
 		// 填充右缓冲区
 		if (buf->p < buf->size / 2 - 1) {
-			memcpy(buf->buf + buf->size / 2, prog_str + pstr, buf->size - 2 - (buf->size / 2 - 1));
-			pstr += buf->size - 2 - (buf->size / 2 - 1);
-			buf->forward;
+			fill_buf(buf, false);
+			buf->forward++;
 		}
 		// 填充左缓冲区
 		else {
-			memcpy(buf->buf, prog_str + pstr, buf->size / 2 - 1);
-			pstr += buf->size / 2 - 1;
+			fill_buf(buf, true);
 			buf->forward = 0;
 		}
-		ch = buf->buf[buf->forward++]; 
-		if (ch == '\n') {
-			line++;
-		}
+		ch = buf->buf[buf->forward++];
 	}
-	else if (ch == '\n') {
-		line++;
-	}
-	if (ch != 0) {
-		nchars++;
-	}
-	
+
+	line += (ch == '\n');
+	nchars += (ch != 0);
 
 	return ch;
 }
 
-char get_nbc(const char* prog_str, buffer *buf, char ch)
+
+char get_nbc(buffer *buf, char ch)
 {
 	//若ch原本不为空，则直接退出
 	if (!(ch == ' ' || ch == '\n' || ch == '\t')) {
 		return ch;
 	}
 	//else
-	ch = get_char(prog_str, buf);
+	ch = get_char(buf);
 
 	while (ch == ' ' || ch == '\n' || ch == '\t')
 	{
-		ch = get_char(prog_str, buf);
+		ch = get_char(buf);
 	}
 
 	return ch;
@@ -108,12 +128,39 @@ void clear_buf(buffer *buf)
 	buf->p = 0;
 }
 
-int get_line()
-{
-	return line;
-}
+int get_line() { return line; }
+int get_chars() { return nchars; }
 
-int get_chars()
-{
-	return nchars;
+int main(int argc, char** args) {
+
+	buffer buf = { NULL,BUF_SIZE,0,0 };
+	buffer token = { NULL,TOKEN_SIZE,0,0 };
+	char file_name[64] = "";
+
+	buf.buf = (char*)malloc(buf.size);
+	token.buf = (char*)malloc(token.size);
+
+	// 没有参数传入
+	if (argc < 2) {
+		printf("Input file name:");
+		scanf("%s", file_name);
+	}
+	else {
+		strcpy(file_name, args[1]);
+	}
+
+
+	b_init(&buf, file_name);
+
+	char ch = get_char(&buf);
+	while (ch != 0) 
+	{
+		putchar(ch);
+		ch = get_char(&buf);
+		buf.p = buf.forward;
+	}
+
+	printf("\nline: %d\nchars: %d", line, nchars);
+
+	return 0;
 }
