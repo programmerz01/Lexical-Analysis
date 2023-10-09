@@ -1,0 +1,11 @@
+	errors in Lexical Analysis
+Error in line 18:
+123.4ex : Invalid Number
+Error in line 20:
++| : Invalid Operators
+Error in line 22:
+?: Unrecognized symbol
+Error in line 22:
+£» : Unrecognized symbol
+Error in line 31:
+/ : Comment not closed

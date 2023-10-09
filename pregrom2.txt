@@ -1,0 +1,540 @@
+/*
+实现与本地文件交互，从本地文件中读取相关数据、系统关闭时将修改过的数据再次写入文件
+*/
+#include "init_and_end.h"
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+#include "list.h"
+using namespace std;
+
+
+//
+//void read_from_file(FILE* fp, void* head_ptr)
+//{
+//	course* head = (course*)head_ptr;
+//
+//	head->lchild = (course*)malloc(sizeof(course));
+//	head->rchild = NULL;
+//	rewind(fp);
+//	fread(head, sizeof(course) - 2 * sizeof(course*), 1, fp);
+//	printf("test1\n");
+//	fread(head->lchild, sizeof(course) - 2 * sizeof(course*), 1, fp);
+//	printf("test2\n"); //just for test
+//
+//}
+
+static char course_names[50][MAX_LENGTH_OF_NAME] = {
+	"数据结构课程设计","计算机组成原理","计算机网络",
+	"形式语言与自动机","毛概","英语听说","概率论",
+	"数字逻辑与数字系统","离散数学","计算机系统基础",
+	"高等数学","大学物理","中国近代史纲要","电路与电子学基础",
+	"综合英语","计算机导论","线性代数","思想道德与法治","马克思主义原理概论"
+};
+
+static int dbg_write_some_students()
+{
+	int cnt = 0;
+	int temp = 2021210950;
+	int con = 0;
+	bool temp_id = true;
+	FILE* stu_fp = fopen("student.dat", "wb");
+	char ID[MAX_LENGTH_OF_NAME];
+	char NAME[MAX_LENGTH_OF_NAME];
+
+	for (int i = 0; i < 25; i++)
+	{
+		 student new_stu = {};
+		 memset(&new_stu, 0, sizeof(new_stu));
+		 memset(NAME, 0, sizeof(MAX_LENGTH_OF_NAME));
+
+		 if (temp_id) {
+			 sprintf(new_stu.id_card, "%d", con);
+			 sprintf(new_stu.password, "%d", con);
+			 sprintf(new_stu.name, "%d",123);
+			 temp_id = false;
+		 }
+		 else {
+			 sprintf(new_stu.id_card, "%d", temp);
+			 sprintf(new_stu.password, "%d", temp);
+			 sprintf(new_stu.name, "%d", temp++ - 2021210950);
+		 }
+		 for (int i = 0; i < 10; i++)
+		 {
+			 new_stu.courses[i] = i + 1;
+		 }
+
+		if (fwrite(&new_stu, sizeof(student), 1, stu_fp)) {
+			cnt++;
+			cout << "成功写入学生\nID:" << new_stu.id_card << " password:" << new_stu.password;
+			cout << " name:" << new_stu.name << endl;
+			for (int j = 0; j < 12; j++)
+			{
+				cout << "courses " << j << "tag: " << new_stu.courses[j]<< endl;;
+			}
+			cout<<" 共写入学生:" << cnt << endl;
+		}
+	}
+
+	cout << "file position: " << ftell(stu_fp) << endl;
+
+	student new_stu = {};
+	memset(&new_stu, 0, sizeof(new_stu));
+	new_stu.is_manager = true;
+	strcpy(new_stu.name, "admin");
+	strcpy(new_stu.id_card, "admin");
+	strcpy(new_stu.password, "admin");
+	if (fwrite(&new_stu, sizeof(student), 1, stu_fp)) {
+		cnt++;
+		cout << "成功写入管理员,ID:" << new_stu.id_card << "     共写入:" << cnt << endl;
+		cout <<"file position: " << ftell(stu_fp) << endl;
+	}
+
+	cout << "file writing ends" << endl;
+	cout << "file position: " << ftell(stu_fp) << endl;
+
+	fclose(stu_fp);
+	return cnt;
+}
+
+//测试用
+static int dbg_write_some_courses()
+{
+	int cnt = 0;
+	int day = 0, hour = 7;
+	cout << "start writing courses" << endl;
+	FILE* cou_fp = fopen("course.dat", "wb");
+
+	char ID[MAX_LENGTH_OF_NAME] = { "2021210950" };
+
+	for (int i = 0; i < 15; i++)
+	{
+		course new_course = {};
+		memset(&new_course, 0, sizeof(new_course));
+
+		new_course.tag = i;
+		//sprintf(new_course.name, "%d", i);
+		strcpy(new_course.name, course_names[i]);
+		new_course.one_week[day] |= (1 << hour++);
+		new_course.one_week[day] |= (1 << hour++);
+		if (hour >= 17) {
+			hour = 7;
+			day++;
+		}
+		for (int i = 0; i < MAX_WEEKS; i++) new_course.weeks[i] = true;
+
+		if (fwrite(&new_course, sizeof(course), 1, cou_fp)) {
+			cnt++;
+			cout << "成功写入课程,tag:" << new_course.tag << "  共写入:" << cnt << endl;
+		}
+	}
+
+	fclose(cou_fp);
+	return cnt;
+}
+
+static int dbg_write_some_names() 
+{
+	int cnt = 0;
+	//int day = 0, hour = 7;
+	//cout << "enter" << endl;
+	FILE* name_fp = fopen("names.dat", "wb");
+
+
+	for (int i = 0; i < 15; i++)
+	{
+		name_entry new_name = {};
+		memset(&new_name, 0, sizeof(name_entry));
+
+		new_name.tag = i;
+		//sprintf(new_course.name, "%d", i);
+		strcpy(new_name.name, course_names[i]);
+
+		if (fwrite(&new_name, sizeof(name_entry), 1, name_fp)) {
+			cnt++;
+			cout << "成功写入课程,name:" << new_name.name << "  共写入:" << cnt << endl;
+		}
+	}
+
+	fclose(name_fp);
+	return cnt;
+}
+
+//int main() {
+//	dbg_write_some_students();
+//	dbg_write_some_courses();
+//	dbg_write_some_names();
+//}
+
+
+
+
+void read_student(student* &stu_ptr_ptr)//从文件中读取学生数据结构
+{
+	int cnt = 0;
+	FILE* stu_fp = fopen("student.dat", "rb");
+	if (stu_fp == NULL) {
+		printf("无法打开文件：%s\n", "student.dat");
+		exit(1);
+	}
+
+	stu_ptr_ptr = (student*)malloc(sizeof(student));
+	if (fread(stu_ptr_ptr, sizeof(student), 1, stu_fp)) {
+		/*cout << "read success";
+		cout << "student" << cnt++ << " name: " << stu_ptr_ptr->name << "   ID: " << stu_ptr_ptr->id_card << endl;
+		for (int i = 0; stu_ptr_ptr->courses[i] != 0; i++) cout << "tag:" << stu_ptr_ptr->courses[i] << " ";
+		cout << endl;*/
+		cnt++;
+	}
+	student* tail_ptr = stu_ptr_ptr;//尾节点，默认文件不为空
+	//cout << "file position: " << ftell(stu_fp) << endl;
+
+	while (!feof(stu_fp))
+	{
+		student* new_ptr;
+		if ((new_ptr = (student*)malloc(sizeof(student))) == NULL) {
+			cout << "malloc fails";
+			exit(1);
+		}
+		if (fread(new_ptr, sizeof(student), 1, stu_fp)) {
+			cnt++;
+			/*cout << "read success";
+			cout << "student" << cnt++ << " name: " << new_ptr->name << "   ID: " << new_ptr->id_card << endl;
+			for (int i = 0; new_ptr->courses[i] != 0; i++) cout << "tag:" << new_ptr->courses[i] << " ";
+			cout << endl;
+			cout << "file position: " << ftell(stu_fp) << endl;*/
+
+			tail_ptr->next = new_ptr;
+			tail_ptr = new_ptr;
+		}
+		else {//达到文件末尾，读取不成功
+			free(new_ptr);
+			tail_ptr->next = NULL;
+		}
+	}
+	cout << "file reading ends, read " << cnt << " sutdents totally" << endl;
+	/*cout << "file position: " << ftell(stu_fp) << endl;*/
+
+	fclose(stu_fp);
+}
+
+void read_course(hash_table* hash_table_of_cou, int courses[])
+{
+	int failue = -1, count = 0;
+	FILE* cou_fp = fopen("course.dat", "rb");
+	if (cou_fp == NULL) {
+		printf("无法打开文件：%s\n", "course.dat");
+		exit(1);
+	}
+
+	//hash_table_of_cou = create_hash_table(MAX_NUM_OF_COURSES);
+	while (!feof(cou_fp))
+	{
+		course* new_ptr = new course;
+		if (fread(new_ptr, sizeof(course), 1, cou_fp)) {
+			//cout << "read course successfully" << endl;
+			//cout << "course name: " << new_ptr->name << "tag: " << new_ptr->tag << endl;
+			union schedule_ptr sp;
+			sp.cou_ptr= new_ptr;
+			schedule sche = { sp, COU };
+			if (hash_add(hash_table_of_cou, new_ptr->name, sche)) {//将读取到的课程加入哈希表中
+				courses[count++] = new_ptr->tag;
+			}
+		}else {
+			delete new_ptr;
+			failue++;
+		}
+	}
+	printf("课程读取完毕，读取成功%d门，读取失败%d门\n", count, failue);
+}
+
+void read_activity(hash_table* hash_table_of_act, student stu)
+{
+	int count = 0;
+	FILE* act_fp = fopen("activity.dat", "rb");
+	if (act_fp == NULL) {
+		cout << "无法打开文件" << endl;
+		exit(1);
+	}
+	struct list_head other_act_list;
+	INIT_LIST_HEAD(&other_act_list);
+	//activity_node
+
+	while (!feof(act_fp))
+	{
+		activity* new_ptr = new activity;
+		if (fread(new_ptr, sizeof(activity), 1, act_fp)) {
+			//cout << "read course successfully" << endl;
+			//cout << "course name: " << new_ptr->name << "tag: " << new_ptr->tag << endl;
+			// 
+			//读取到的活动信息不是登录学生信息
+			if (strcmp(new_ptr->student_id, stu.id_card) != 0) {
+				activity_node act_node;		//变量只具有函数作用域，格外注意
+				act_node.act_ptr = new_ptr;
+				list_add(&act_node.list, &other_act_list);
+			}
+			else {
+				union schedule_ptr sp;
+				sp.act_ptr = new_ptr;
+				schedule sche = { sp, ACT };
+				if (hash_add(hash_table_of_act, new_ptr->name, sche)) {//将读取到的课程加入哈希表中
+					count++;
+				}
+			}
+		}
+		else {
+			free(new_ptr);
+		}
+	}
+	fclose(act_fp);
+
+	FILE* act_fp2 = fopen("activity.dat", "wb");
+	if (act_fp2 == NULL) {
+		cout << "无法打开文件" << endl;
+		exit(1);
+	}
+	struct list_head* pos, * tmp;
+	activity_node* act_temp_ptr;
+
+	list_for_each_safe(pos, tmp, &other_act_list) {
+		act_temp_ptr = list_entry(pos, activity_node, list);
+		fwrite(act_temp_ptr->act_ptr, sizeof(activity), 1, act_fp2);
+		delete act_temp_ptr->act_ptr;
+		list_del(&act_temp_ptr->list);
+	}
+	fclose(act_fp2);
+
+	cout << "activity reading ends read " << count << " totally" << endl;
+}
+
+void read_affair(hash_table* hash_table_of_aff, student stu)
+{
+	int count = 0;
+	FILE* aff_fp = fopen("affair.dat", "rb");
+	if (aff_fp == NULL) {
+		cout << "无法打开文件" << endl;
+		exit(1);
+	}
+	struct list_head other_aff_list;
+	INIT_LIST_HEAD(&other_aff_list);
+	//activity_node
+
+	while (!feof(aff_fp))
+	{
+		affair* new_ptr = new affair;
+		if (fread(new_ptr, sizeof(affair), 1, aff_fp)) {
+			//cout << "read course successfully" << endl;
+			//cout << "course name: " << new_ptr->name << "tag: " << new_ptr->tag << endl;
+			// 
+			//读取到的活动信息不是登录学生信息
+			if (strcmp(new_ptr->student_id, stu.id_card) != 0) {
+				affair_node aff_node;		//变量只具有函数作用域，格外注意
+				aff_node.aff_ptr = new_ptr;
+				list_add(&aff_node.list, &other_aff_list);
+			}
+			else {
+				union schedule_ptr sp;
+				sp.aff_ptr = new_ptr;
+				schedule sche = { sp, AFF };
+				if (hash_add(hash_table_of_aff, new_ptr->name, sche)) {//将读取到的课程加入哈希表中
+					count++;
+				}
+			}
+		}
+		else {
+			delete new_ptr;
+		}
+	}
+	fclose(aff_fp);
+
+	FILE* aff_fp2 = fopen("affair.dat", "wb");
+	if (aff_fp2 == NULL) {
+		cout << "无法打开文件" << endl;
+		exit(1);
+	}
+	struct list_head* pos, * tmp;
+	affair_node* aff_temp_ptr;
+
+	list_for_each_safe(pos, tmp, &other_aff_list) {
+		aff_temp_ptr = list_entry(pos, affair_node, list);
+		fwrite(aff_temp_ptr->aff_ptr, sizeof(affair), 1, aff_fp2);
+		delete aff_temp_ptr->aff_ptr;
+		list_del(&aff_temp_ptr->list);
+	}
+	fclose(aff_fp2);
+
+	cout << "affair reading ends read " << count << " totally" << endl;
+}
+
+void read_name(hash_name_table* hash_table_of_name)
+{
+	int cnt = 0;
+	FILE* name_fp = fopen("names.dat", "rb");
+	if (name_fp == NULL) {
+		printf("无法打开文件：%s\n", "name.dat");
+		exit(1);
+	}
+
+	//hash_table_of_cou = create_hash_table(MAX_NUM_OF_COURSES);
+	name_entry* new_ptr = (name_entry*)malloc(sizeof(name_entry));
+	while (!feof(name_fp))
+	{
+		if (fread(new_ptr, sizeof(name_entry), 1, name_fp)) {
+			//cout << "read name successfully:" << new_ptr->name << endl;
+			if (hash_add_name(new_ptr->name, new_ptr->tag)) {//将读取到的课程加入哈希表中
+				cnt++;
+			}
+		}
+		else {
+			free(new_ptr);
+		}
+	}
+	cout << "reading name ends, read" << cnt << "totally" << endl;
+
+
+}
+
+int write_and_del_course(hash_table* hash_table_of_cou, bool is_manager)
+{
+	int cnt = 0;
+	//若不是管理员登录，则课程一定未修改
+	if (is_manager) {
+		FILE* fp = fopen("./course,dat", "w");
+		if (fp == NULL) {
+			printf("无法打开文件：%s\n", "course.dat");
+			exit(1);
+		}
+		//遍历哈希表将课程存储
+		for (int i = 0; i < hash_table_of_cou->size; i++)
+		{
+			if (hash_table_of_cou->bucket[i]) {
+				hash_entry* temp = hash_table_of_cou->bucket[i];
+				while (temp)
+				{
+					if (fwrite(temp->info.sche_ptr.cou_ptr, sizeof(course), 1, fp)) {
+						cnt++;
+					}
+					temp = temp->next;
+				}
+			}
+		}
+	}
+	//释放哈希表内存
+	del_hash_table(hash_table_of_cou);
+
+	return cnt;
+}
+
+int write_and_del_affair(hash_table* hash_table_of_aff)
+{
+	int cnt = 0;
+
+	FILE* fp = fopen("affair.dat", "ab");
+	if (fp == NULL) {
+		printf("无法打开文件：%s\n", "affair.dat");
+		exit(1);
+	}
+	//遍历哈希表将课程存储
+	for (int i = 0; i < hash_table_of_aff->size; i++)
+	{
+		if (hash_table_of_aff->bucket[i]) {
+			hash_entry* temp = hash_table_of_aff->bucket[i];
+			while (temp)
+			{
+				if (fwrite(temp->info.sche_ptr.aff_ptr, sizeof(affair), 1, fp)) {
+					cnt++;
+				}
+				temp = temp->next;
+			}
+		}
+	}
+
+	//释放哈希表内存
+	del_hash_table(hash_table_of_aff);
+
+	return cnt;
+}
+
+int write_and_del_activity(hash_table* hash_table_of_act)
+{
+	int cnt=0;
+
+	FILE* fp = fopen("activity.dat", "ab");
+	if (fp == NULL) {
+		printf("无法打开文件：%s\n", "activity.dat");
+		exit(1);
+	}
+	//遍历哈希表将课程存储
+	for (int i = 0; i < hash_table_of_act->size; i++)
+	{
+		if (hash_table_of_act->bucket[i]) {
+			hash_entry* temp = hash_table_of_act->bucket[i];
+			while (temp)
+			{
+				if (fwrite(temp->info.sche_ptr.act_ptr, sizeof(activity), 1, fp)) {
+					cnt++;
+				}
+				temp = temp->next;
+			}
+		}
+	}
+
+	//释放哈希表内存
+	del_hash_table(hash_table_of_act);
+
+	return cnt;
+}
+
+int del_name(hash_name_table* hash_table_of_name, bool is_admin) {
+	if (is_admin) {
+		int cnt = 0;
+		FILE* name_fp = fopen("names.dat", "wb");
+		if (name_fp == NULL) {
+			printf("无法打开文件：%s\n", "name.dat");
+			exit(1);
+		}
+
+		for (int i = 0; i < hash_table_of_name->size; i++)
+		{
+			if (hash_table_of_name->bucket[i]) {
+				name_entry* temp = hash_table_of_name->bucket[i];
+				while (temp)
+				{
+					if (fwrite(temp, sizeof(name_entry), 1, name_fp)) {
+						cnt++;
+					}
+					temp = temp->next;
+				}
+			}
+		}
+
+	}
+	 return del_hash_name_table();
+}
+
+int del_stu_list(student* stu_ptr)
+{
+	int cnt = 0;
+	student* nex_ptr;
+
+	FILE* stu_fp = fopen("student.dat", "wb+");
+	if (stu_fp == NULL) {
+		printf("无法打开文件：%s\n", "student.dat");
+		exit(1);
+	}
+
+	while (stu_ptr)
+	{	
+		nex_ptr = stu_ptr->next;
+
+		if (fwrite(stu_ptr, sizeof(student), 1, stu_fp)) {
+			cnt++;
+		}
+		free(stu_ptr);
+		stu_ptr = nex_ptr;
+	}
+	fclose(stu_fp);
+
+	return cnt;
+}

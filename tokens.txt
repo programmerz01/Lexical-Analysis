@@ -1,0 +1,98 @@
+  Lexical Analysis	
+Type			token
+Key word    		int
+Identifier  		main
+Seperator   		(
+Seperator   		)
+Seperator   		{
+Identifier  		printf
+Seperator   		(
+Type str    		"hello world!"
+Seperator   		)
+Seperator   		;
+Key word    		int
+Identifier  		a
+Operator    		=
+Type int    		0
+Seperator   		;
+Key word    		float
+Identifier  		b
+Operator    		=
+Type float  		1.5e6
+Seperator   		;
+Identifier  		char
+Identifier  		c
+Operator    		=
+Type char   		'4'
+Seperator   		;
+Key word    		struct
+Identifier  		buffer
+Seperator   		{
+Key word    		int
+Identifier  		a
+Seperator   		;
+Key word    		float
+Identifier  		b
+Seperator   		;
+Seperator   		}
+Identifier  		buf
+Seperator   		;
+Identifier  		buf
+Seperator   		.
+Identifier  		a
+Operator    		=
+Type int    		123456
+Seperator   		;
+Identifier  		buf
+Seperator   		.
+Identifier  		b
+Operator    		=
+Type float  		1.5
+Seperator   		(
+Operator    		&
+Identifier  		buf
+Seperator   		)
+Operator    		->
+Identifier  		a
+Operator    		++
+Seperator   		;
+Identifier  		a
+Operator    		+=
+Type int    		123
+Seperator   		;
+Identifier  		x
+Seperator   		;
+Identifier  		a
+Operator    		>>=
+Type int    		123
+Seperator   		;
+Identifier  		a
+Type int    		456
+Identifier  		char
+Operator    		*
+Identifier  		string
+Seperator   		[
+Type int    		20
+Seperator   		]
+Operator    		=
+Type str    		"string fot test \\t \\"
+Seperator   		;
+Key word    		return
+Type int    		0
+Seperator   		;
+Seperator   		}
+
+	End lexical Analysis
+Chars: 425
+lines: 31
+tokens: 81
+
+	Statistical data for each type:
+Identifiers:22
+key words:7
+Ints:7
+Floats:2
+Chars:1
+Strings:2
+Operators:12
+Seperators:28

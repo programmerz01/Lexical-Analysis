@@ -1,0 +1,32 @@
+/*
+	This is a comment at beginning
+*/
+int main(){
+
+	printf("hello world!");
+	int a = 0;
+	float b= 1.5e6;
+	char c = '4';
+	struct buffer{
+        int a;
+        float b;
+    }buf;
+
+    buf.a = 123456;
+    buf.b = 1.5
+    (&buf)->a ++;
+	a+=123;		123.4ex;
+	a>>=123;	
+	a+|456
+	£»//"£»"
+
+	char* string[20]="string fot test \\t \\";
+
+	return 0;
+}
+
+/*
+	bupt
+	This is a comment in the end
+*/
+
